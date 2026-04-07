@@ -132,7 +132,7 @@ input[type="date"] { color-scheme:dark; }
           <label>Monto</label>
           <div class="amount-wrap">
             <select id="v-moneda"><option value="PEN">S/.</option><option value="USD">USD</option><option value="EUR">EUR</option></select>
-            <input type="number" id="v-monto" placeholder="0.00" min="0" step="0.01" inputmode="decimal">
+            <input type="text" id="v-monto" placeholder="0.00" min="0" step="0.01" inputmode="decimal" pattern="[0-9]*[.,][0-9]*">
           </div>
         </div>
         <div class="row-2">
@@ -172,7 +172,7 @@ input[type="date"] { color-scheme:dark; }
           <label>Monto</label>
           <div class="amount-wrap">
             <select id="f-moneda"><option value="PEN">S/.</option><option value="USD">USD</option><option value="EUR">EUR</option></select>
-            <input type="number" id="f-monto" placeholder="0.00" min="0" step="0.01" inputmode="decimal">
+            <input type="text" id="f-monto" placeholder="0.00" min="0" step="0.01" inputmode="decimal" pattern="[0-9]*[.,][0-9]*">
           </div>
         </div>
         <button class="btn-primary" id="f-btn" onclick="addFijo()">Agregar gasto fijo</button>
@@ -353,7 +353,7 @@ function renderFijos() {
               <option value="EUR"${g.moneda==="EUR"?" selected":""}>EUR</option>
             </select>
           </div>
-          <div class="field"><input type="number" id="em-${g.fila}" value="${g.monto}" step="0.01" inputmode="decimal"></div>
+          <div class="field"><input type="text" id="em-${g.fila}" value="${g.monto}" step="0.01" inputmode="decimal" pattern="[0-9]*[.,][0-9]*"></div>
         </div>
         <div class="edit-btns" style="margin-top:8px">
           <button class="btn-primary" onclick="saveEdit(${g.fila})">Guardar</button>
