@@ -253,7 +253,7 @@ async function addVariable() {
   if(!desc){setStatus("v-status","err","Agrega una descripción");return;}
   btn.disabled=true; setStatus("v-status","loading","Guardando...");
   try {
-    await apiSend({accion:"addVariable",fecha,descripcion:desc,monto:parseFloat(monto),categoria:cat});
+    await apiSend({accion:"addVariable",fecha,descripcion:desc,monto:parseFloat(monto),categoria:cat,moneda:mon});
     variablesCache.unshift({fecha,descripcion:desc,monto:parseFloat(monto),categoria:cat});
     renderVariables();
     document.getElementById("v-monto").value="";
