@@ -244,7 +244,7 @@ function setStatus(id,type,msg) {
 
 // ── VARIABLES ──
 async function addVariable() {
-  const monto=document.getElementById("v-monto").value;
+  const monto=document.getElementById("v-monto").value.replace(",",".");
   const fecha=document.getElementById("v-fecha").value;
   const desc =document.getElementById("v-desc").value.trim();
   const cat  =document.getElementById("v-categoria").value;
@@ -303,7 +303,7 @@ async function loadFijos() {
 
 async function addFijo() {
   const nombre=document.getElementById("f-nombre").value.trim();
-  const monto =document.getElementById("f-monto").value;
+  const monto=document.getElementById("f-monto").value.replace(",",".");
   const moneda=document.getElementById("f-moneda").value;
   const btn   =document.getElementById("f-btn");
   if(!nombre){setStatus("f-status","err","Agrega un nombre");return;}
