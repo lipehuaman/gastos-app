@@ -367,7 +367,7 @@ function renderFijos() {
           <span class="badge ${g.moneda}" style="width:fit-content;margin-top:2px">${g.moneda}</span>
         </div>
         <div class="item-right">
-          <span class="item-amount">${sym}${parseFloat(g.monto).toFixed(2)}</span>
+          <span class="item-amount">${sym}${parseFloat(g.montoSoles||g.monto).toFixed(2)}</span>
           <button class="btn-ghost" onclick="editando=${g.fila};renderFijos()">Editar</button>
           <button class="btn-danger" onclick="deleteFijo(${g.fila})">✕</button>
         </div>
