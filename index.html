@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0c0c0c">
+<title>Gastos</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+:root {
+  --bg:#0c0c0c; --s1:#161616; --s2:#1e1e1e; --s3:#282828;
+  --border:#2a2a2a; --border2:#333; --text:#edeae4; --muted:#555; --muted2:#777;
+  --accent:#c9f55b; --accent-bg:rgba(201,245,91,.1);
+  --pen-c:#4ade80; --pen-bg:rgba(74,222,128,.1);
+  --usd-c:#60a5fa; --usd-bg:rgba(96,165,250,.1);
+  --eur-c:#fbbf24; --eur-bg:rgba(251,191,36,.1);
+  --red:#f87171; --red-bg:rgba(248,113,113,.1);
+  --r:12px; --r-sm:8px;
+  --sans:'DM Sans',sans-serif; --mono:'DM Mono',monospace;
+}
+html,body { height:100%; background:var(--bg); color:var(--text); font-family:var(--sans); }
+.app { display:flex; flex-direction:column; height:100dvh; max-width:480px; margin:0 auto; }
+
+/* topbar */
+.topbar { display:flex; align-items:center; justify-content:space-between; padding:18px 20px 0; flex-shrink:0; }
+.topbar-title { font-size:12px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--muted2); }
+.sheet-btn { font-family:var(--mono); font-size:11px; color:var(--muted2); border:1px solid var(--border); border-radius:99px; padding:4px 12px; text-decoration:none; transition:color .2s,border-color .2s; }
+.sheet-btn:hover { color:var(--accent); border-color:var(--accent); }
+
+/* tabs */
+.tabs { display:flex; gap:4px; padding:14px 20px 0; flex-shrink:0; }
+.tab { flex:1; padding:9px 0; font-size:13px; font-weight:500; background:var(--s1); border:1px solid var(--border); border-radius:var(--r-sm); color:var(--muted2); cursor:pointer; transition:all .15s; text-align:center; }
+.tab.active { background:var(--s2); border-color:var(--border2); color:var(--text); }
+
+/* scroll */
+.content { flex:1; overflow-y:auto; padding:14px 20px 40px; }
+
+/* card */
+.card { background:var(--s1); border:1px solid var(--border); border-radius:var(--r); padding:18px; margin-bottom:10px; }
+
+/* form */
+.field { display:flex; flex-direction:column; gap:5px; margin-bottom:11px; }
+.field:last-child { margin-bottom:0; }
+label { font-size:11px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:var(--muted2); }
+input,select { background:var(--s2); border:1px solid var(--border); border-radius:var(--r-sm); color:var(--text); font-family:var(--sans); font-size:14px; padding:10px 12px; outline:none; width:100%; transition:border-color .15s; -webkit-appearance:none; appearance:none; }
+input:focus,select:focus { border-color:var(--accent); }
+input::placeholder { color:var(--muted); }
+input[type="date"] { color-scheme:dark; }
+.row-2 { display:flex; gap:8px; }
+.row-2 .field { flex:1; }
+.amount-wrap { display:flex; }
+.amount-wrap select { border-radius:var(--r-sm) 0 0 var(--r-sm); border-right:none; width:78px; flex-shrink:0; font-family:var(--mono); font-size:13px; text-align:center; }
+.amount-wrap input  { border-radius:0 var(--r-sm) var(--r-sm) 0; font-family:var(--mono); font-size:22px; }
+
+/* buttons */
+.btn-primary { width:100%; padding:13px; border:none; border-radius:var(--r-sm); background:var(--accent); color:#0c0c0c; font-family:var(--sans); font-size:14px; font-weight:500; cursor:pointer; transition:opacity .15s,transform .1s; margin-top:4px; }
+.btn-primary:hover { opacity:.9; }
+.btn-primary:active { transform:scale(.98); }
+.btn-primary:disabled { opacity:.35; cursor:not-allowed; }
+.btn-ghost { padding:7px 12px; border:1px solid var(--border); border-radius:var(--r-sm); background:transparent; color:var(--muted2); font-family:var(--sans); font-size:12px; cursor:pointer; transition:all .15s; }
+.btn-ghost:hover { border-color:var(--border2); color:var(--text); }
+.btn-danger { padding:7px 10px; border:1px solid transparent; border-radius:var(--r-sm); background:transparent; color:var(--muted); font-family:var(--sans); font-size:13px; cursor:pointer; transition:all .15s; }
+.btn-danger:hover { background:var(--red-bg); color:var(--red); }
+
+/* status */
+.status { font-size:12px; font-family:var(--mono); padding:9px 12px; border-radius:var(--r-sm); margin-top:10px; display:none; }
+.status.ok      { background:var(--pen-bg); color:var(--pen-c); display:block; }
+.status.err     { background:var(--red-bg); color:var(--red);   display:block; }
+.status.loading { background:var(--s2);     color:var(--muted2);display:block; }
+
+/* section label */
+.section-label { font-size:11px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin:18px 0 9px; }
+
+/* mes nav */
+.mes-nav { display:flex; align-items:center; justify-content:space-between; background:var(--s1); border:1px solid var(--border); border-radius:var(--r-sm); padding:10px 14px; margin-bottom:6px; }
+.mes-nav span { font-family:var(--mono); font-size:13px; }
+.mes-arrow { background:none; border:none; color:var(--muted2); font-size:20px; cursor:pointer; padding:0 4px; line-height:1; transition:color .15s; }
+.mes-arrow:hover { color:var(--text); }
+
+/* total */
+.total-bar { background:var(--accent-bg); border:1px solid rgba(201,245,91,.15); border-radius:var(--r-sm); padding:11px 14px; display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+.total-label  { font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted2); }
+.total-amount { font-family:var(--mono); font-size:18px; font-weight:500; color:var(--accent); }
+
+/* list */
+.list { display:flex; flex-direction:column; gap:7px; }
+.item { background:var(--s1); border:1px solid var(--border); border-radius:var(--r-sm); padding:12px 14px; display:flex; justify-content:space-between; align-items:center; animation:fadeUp .2s ease; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+.item-left  { display:flex; flex-direction:column; gap:3px; min-width:0; }
+.item-name  { font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px; }
+.item-sub   { font-size:11px; color:var(--muted2); font-family:var(--mono); }
+.item-right { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+.item-amount{ font-family:var(--mono); font-size:15px; font-weight:500; }
+.badge { font-family:var(--mono); font-size:10px; font-weight:500; padding:2px 7px; border-radius:99px; }
+.PEN { background:var(--pen-bg); color:var(--pen-c); }
+.USD { background:var(--usd-bg); color:var(--usd-c); }
+.EUR { background:var(--eur-bg); color:var(--eur-c); }
+
+/* edit inline */
+.edit-row { background:var(--s2); border:1px solid var(--border2); border-radius:var(--r-sm); padding:14px; margin-bottom:7px; flex-direction:column; gap:8px; display:none; }
+.edit-row.open { display:flex; }
+.edit-btns { display:flex; gap:8px; }
+.edit-btns .btn-primary { margin:0; flex:1; }
+
+.empty { font-size:13px; color:var(--muted); text-align:center; padding:28px 0; font-family:var(--mono); font-style:italic; }
+.panel { display:none; }
+.panel.active { display:block; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <span class="topbar-title">Gastos</span>
+    <a class="sheet-btn" id="sheet-link" href="#" target="_blank">Ver Sheet ↗</a>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('variables')">Variables</div>
+    <div class="tab"        onclick="switchTab('fijos')">Fijos</div>
+  </div>
+
+  <div class="content">
+
+    <!-- VARIABLES -->
+    <div class="panel active" id="panel-variables">
+      <div class="card" style="margin-top:8px">
+        <div class="field">
+          <label>Monto</label>
+          <div class="amount-wrap">
+            <select id="v-moneda"><option value="PEN">S/.</option><option value="USD">USD</option><option value="EUR">EUR</option></select>
+            <input type="number" id="v-monto" placeholder="0.00" min="0" step="0.01" inputmode="decimal">
+          </div>
+        </div>
+        <div class="row-2">
+          <div class="field"><label>Fecha</label><input type="date" id="v-fecha"></div>
+          <div class="field">
+            <label>Categoría</label>
+            <select id="v-categoria">
+              <option>Comida</option><option>Transporte</option><option>Salud</option>
+              <option>Entretenimiento</option><option>Ropa</option><option>Tecnología</option>
+              <option>Hogar</option><option>Otro</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Descripción</label><input type="text" id="v-desc" placeholder="ej. almuerzo en el trabajo"></div>
+        <button class="btn-primary" id="v-btn" onclick="addVariable()">Agregar gasto</button>
+        <div class="status" id="v-status"></div>
+      </div>
+
+      <div class="section-label">Registro del mes</div>
+      <div class="mes-nav">
+        <button class="mes-arrow" onclick="cambiarMes(-1)">‹</button>
+        <span id="mes-label">—</span>
+        <button class="mes-arrow" onclick="cambiarMes(1)">›</button>
+      </div>
+      <div class="total-bar">
+        <span class="total-label">Total S/.</span>
+        <span class="total-amount" id="total-pen">0.00</span>
+      </div>
+      <div class="list" id="v-list" style="margin-top:4px"></div>
+    </div>
+
+    <!-- FIJOS -->
+    <div class="panel" id="panel-fijos">
+      <div class="card" style="margin-top:8px">
+        <div class="field"><label>Nombre</label><input type="text" id="f-nombre" placeholder="ej. Alquiler"></div>
+        <div class="field">
+          <label>Monto</label>
+          <div class="amount-wrap">
+            <select id="f-moneda"><option value="PEN">S/.</option><option value="USD">USD</option><option value="EUR">EUR</option></select>
+            <input type="number" id="f-monto" placeholder="0.00" min="0" step="0.01" inputmode="decimal">
+          </div>
+        </div>
+        <button class="btn-primary" id="f-btn" onclick="addFijo()">Agregar gasto fijo</button>
+        <div class="status" id="f-status"></div>
+      </div>
+      <div class="total-bar" style="margin-top:2px">
+        <span class="total-label">Total fijos S/.</span>
+        <span class="total-amount" id="total-fijos">0.00</span>
+      </div>
+      <div class="section-label">Gastos fijos</div>
+      <div id="f-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrtpK6H2EGJKippXw-F5DgDJfNPEY_EKX_RD0LgnOXUjqSOONbcoZ7J8bsM5tyE7UE/exec";
+const SHEET_ID   = "1lhrHZWK6p7HJ-J8_y7dAAUpdWvrIbognK14TaKtcBEs"; // ← Pon tu nuevo Sheet ID aquí cuando lo crees
+const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+document.getElementById("sheet-link").href = SHEET_ID
+  ? `https://docs.google.com/spreadsheets/d/1lhrHZWK6p7HJ-J8_y7dAAUpdWvrIbognK14TaKtcBEs/edit`
+  : "#";
+
+let mesOffset = 0;
+let variablesCache = [];
+let fijosCache = [];
+let editando = null;
+
+// init
+document.getElementById("v-fecha").value = new Date().toISOString().split("T")[0];
+renderMesLabel();
+loadVariables();
+loadFijos();
+
+// tabs
+function switchTab(tab) {
+  document.querySelectorAll(".tab").forEach((t,i) =>
+    t.classList.toggle("active",(i===0&&tab==="variables")||(i===1&&tab==="fijos")));
+  document.getElementById("panel-variables").classList.toggle("active",tab==="variables");
+  document.getElementById("panel-fijos").classList.toggle("active",tab==="fijos");
+}
+
+// mes
+function getMes() {
+  const d = new Date(); d.setMonth(d.getMonth()+mesOffset);
+  return MESES[d.getMonth()]+" "+d.getFullYear();
+}
+function renderMesLabel() { document.getElementById("mes-label").textContent = getMes(); }
+function cambiarMes(dir) { mesOffset+=dir; renderMesLabel(); loadVariables(); }
+
+// api
+async function apiGet(params) {
+  const res = await fetch(SCRIPT_URL+"?"+new URLSearchParams(params));
+  return res.json();
+}
+async function apiSend(params) {
+  await fetch(SCRIPT_URL+"?"+new URLSearchParams(params),{mode:"no-cors"});
+  return {status:"ok"};
+}
+
+// status
+function setStatus(id,type,msg) {
+  const el=document.getElementById(id);
+  el.className="status "+type; el.textContent=msg;
+  if(type==="ok") setTimeout(()=>el.style.display="none",2500);
+}
+
+// ── VARIABLES ──
+async function addVariable() {
+  const monto=document.getElementById("v-monto").value;
+  const fecha=document.getElementById("v-fecha").value;
+  const desc =document.getElementById("v-desc").value.trim();
+  const cat  =document.getElementById("v-categoria").value;
+  const btn  =document.getElementById("v-btn");
+  if(!monto||parseFloat(monto)<=0){setStatus("v-status","err","Ingresa un monto válido");return;}
+  if(!desc){setStatus("v-status","err","Agrega una descripción");return;}
+  btn.disabled=true; setStatus("v-status","loading","Guardando...");
+  try {
+    await apiSend({accion:"addVariable",fecha,descripcion:desc,monto:parseFloat(monto),categoria:cat});
+    variablesCache.unshift({fecha,descripcion:desc,monto:parseFloat(monto),categoria:cat});
+    renderVariables();
+    document.getElementById("v-monto").value="";
+    document.getElementById("v-desc").value="";
+    setStatus("v-status","ok","✓ guardado en "+getMes());
+  } catch(e){setStatus("v-status","err","Error: "+e.message);}
+  btn.disabled=false;
+}
+
+async function loadVariables() {
+  document.getElementById("v-list").innerHTML='<p class="empty">cargando...</p>';
+  try {
+    const d=await apiGet({accion:"getVariables",mes:getMes()});
+    variablesCache=Array.isArray(d)?d:[];
+    renderVariables();
+  } catch(e){variablesCache=[];renderVariables();}
+}
+
+function renderVariables() {
+  const el=document.getElementById("v-list");
+  const totEl=document.getElementById("total-pen");
+  if(!variablesCache.length){el.innerHTML='<p class="empty">— sin gastos este mes —</p>';totEl.textContent="0.00";return;}
+  let total=0;
+  el.innerHTML=variablesCache.map(g=>{
+    total+=parseFloat(g.monto)||0;
+    return `<div class="item">
+      <div class="item-left">
+        <span class="item-name">${g.descripcion||""}</span>
+        <span class="item-sub">${g.fecha} · ${g.categoria||""}</span>
+      </div>
+      <div class="item-right">
+        <span class="item-amount">S/.${parseFloat(g.monto).toFixed(2)}</span>
+      </div>
+    </div>`;
+  }).join("");
+  totEl.textContent=total.toFixed(2);
+}
+
+// ── FIJOS ──
+async function loadFijos() {
+  try {
+    const d=await apiGet({accion:"getFijos"});
+    fijosCache=Array.isArray(d)?d:[];
+    renderFijos();
+  } catch(e){fijosCache=[];renderFijos();}
+}
+
+async function addFijo() {
+  const nombre=document.getElementById("f-nombre").value.trim();
+  const monto =document.getElementById("f-monto").value;
+  const moneda=document.getElementById("f-moneda").value;
+  const btn   =document.getElementById("f-btn");
+  if(!nombre){setStatus("f-status","err","Agrega un nombre");return;}
+  if(!monto||parseFloat(monto)<=0){setStatus("f-status","err","Ingresa un monto válido");return;}
+  btn.disabled=true; setStatus("f-status","loading","Guardando...");
+  try {
+    await apiSend({accion:"addFijo",nombre,monto:parseFloat(monto),moneda});
+    await loadFijos();
+    document.getElementById("f-nombre").value="";
+    document.getElementById("f-monto").value="";
+    setStatus("f-status","ok","✓ guardado");
+  } catch(e){setStatus("f-status","err","Error: "+e.message);}
+  btn.disabled=false;
+}
+
+async function deleteFijo(fila) {
+  if(!confirm("¿Eliminar este gasto fijo?"))return;
+  await apiSend({accion:"deleteFijo",fila});
+  await loadFijos();
+}
+
+async function saveEdit(fila) {
+  const nombre=document.getElementById("en-"+fila).value.trim();
+  const monto =document.getElementById("em-"+fila).value;
+  const moneda=document.getElementById("emon-"+fila).value;
+  if(!nombre||!monto)return;
+  await apiSend({accion:"editFijo",fila,nombre,monto:parseFloat(monto),moneda});
+  editando=null; await loadFijos();
+}
+
+function renderFijos() {
+  const el=document.getElementById("f-list");
+  const totEl=document.getElementById("total-fijos");
+  if(!fijosCache.length){el.innerHTML='<p class="empty">— sin gastos fijos —</p>';totEl.textContent="0.00";return;}
+  let total=0; let html='<div class="list">';
+  fijosCache.forEach(g=>{
+    total+=parseFloat(g.monto)||0;
+    const sym=g.moneda==="PEN"?"S/.":g.moneda==="USD"?"$":"€";
+    if(editando===g.fila){
+      html+=`<div class="edit-row open">
+        <div class="field" style="margin-bottom:8px"><input type="text" id="en-${g.fila}" value="${g.nombre}"></div>
+        <div class="row-2" style="margin-bottom:0">
+          <div class="field" style="flex:0 0 90px">
+            <select id="emon-${g.fila}">
+              <option value="PEN"${g.moneda==="PEN"?" selected":""}>S/.</option>
+              <option value="USD"${g.moneda==="USD"?" selected":""}>USD</option>
+              <option value="EUR"${g.moneda==="EUR"?" selected":""}>EUR</option>
+            </select>
+          </div>
+          <div class="field"><input type="number" id="em-${g.fila}" value="${g.monto}" step="0.01" inputmode="decimal"></div>
+        </div>
+        <div class="edit-btns" style="margin-top:8px">
+          <button class="btn-primary" onclick="saveEdit(${g.fila})">Guardar</button>
+          <button class="btn-ghost" onclick="editando=null;renderFijos()">Cancelar</button>
+        </div>
+      </div>`;
+    } else {
+      html+=`<div class="item">
+        <div class="item-left">
+          <span class="item-name">${g.nombre}</span>
+          <span class="badge ${g.moneda}" style="width:fit-content;margin-top:2px">${g.moneda}</span>
+        </div>
+        <div class="item-right">
+          <span class="item-amount">${sym}${parseFloat(g.monto).toFixed(2)}</span>
+          <button class="btn-ghost" onclick="editando=${g.fila};renderFijos()">Editar</button>
+          <button class="btn-danger" onclick="deleteFijo(${g.fila})">✕</button>
+        </div>
+      </div>`;
+    }
+  });
+  html+='</div>';
+  el.innerHTML=html;
+  totEl.textContent=total.toFixed(2);
+}
+</script>
+</body>
+</html>
