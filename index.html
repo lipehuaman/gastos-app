@@ -278,14 +278,14 @@ function renderVariables() {
   if(!variablesCache.length){el.innerHTML='<p class="empty">— sin gastos este mes —</p>';totEl.textContent="0.00";return;}
   let total=0;
   el.innerHTML=variablesCache.map(g=>{
-    total+=parseFloat(g.monto)||0;
+    total+=parseFloat(g.montoSoles||g.monto)||0;
     return `<div class="item">
       <div class="item-left">
         <span class="item-name">${g.descripcion||""}</span>
         <span class="item-sub">${g.fecha} · ${g.categoria||""}</span>
       </div>
       <div class="item-right">
-        <span class="item-amount">S/.${parseFloat(g.monto).toFixed(2)}</span>
+        <span class="item-amount">${g.moneda && g.moneda!=="PEN" ? g.moneda+" "+parseFloat(g.monto).toFixed(2)+" · " : ""}S/.${parseFloat(g.montoSoles||g.monto).toFixed(2)}</span>
       </div>
     </div>`;
   }).join("");
@@ -340,7 +340,7 @@ function renderFijos() {
   if(!fijosCache.length){el.innerHTML='<p class="empty">— sin gastos fijos —</p>';totEl.textContent="0.00";return;}
   let total=0; let html='<div class="list">';
   fijosCache.forEach(g=>{
-    total+=parseFloat(g.monto)||0;
+    total+=parseFloat(g.montoSoles||g.monto)||0;
     const sym=g.moneda==="PEN"?"S/.":g.moneda==="USD"?"$":"€";
     if(editando===g.fila){
       html+=`<div class="edit-row open">
